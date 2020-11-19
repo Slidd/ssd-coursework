@@ -124,7 +124,10 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, city)
+		_, err = insForm.Exec(name, city)
+		if err != nil {
+			log.Print(err.Error())
+		}
 		log.Println("INSERT: Name: " + name + " | City: " + city)
 	}
 	defer db.Close()
@@ -141,7 +144,10 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, city, id)
+		_, err = insForm.Exec(name, city, id)
+		if err != nil {
+			log.Print(err.Error())
+		}
 		log.Println("UPDATE: Name: " + name + " | City: " + city)
 	}
 	defer db.Close()
@@ -155,7 +161,10 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-	delForm.Exec(emp)
+	_, err = delForm.Exec(emp)
+	if err != nil {
+		log.Print(err.Error())
+	}
 	log.Println("DELETE")
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
