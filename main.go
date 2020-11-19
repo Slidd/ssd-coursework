@@ -1,9 +1,15 @@
 package main
 
-import "ssd-coursework/app"
+import (
+	"log"
+	"ssd-coursework/app"
+)
 
 // entrypoint
 func main() {
-	app.Init()
+	err := app.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
 	StartServer()
 }
