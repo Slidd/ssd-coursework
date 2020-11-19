@@ -49,7 +49,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		emp.City = city
 		res = append(res, emp)
 	}
-	tmpl.ExecuteTemplate(w, "Index", res)
+	err = tmpl.ExecuteTemplate(w, "Index", res)
+	if err != nil {
+		log.Print(err.Error())
+	}
 	defer db.Close()
 }
 
@@ -72,12 +75,18 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		emp.Name = name
 		emp.City = city
 	}
-	tmpl.ExecuteTemplate(w, "Show", emp)
+	err = tmpl.ExecuteTemplate(w, "Show", emp)
+	if err != nil {
+		log.Print(err.Error())
+	}
 	defer db.Close()
 }
 
 func New(w http.ResponseWriter, r *http.Request) {
-	tmpl.ExecuteTemplate(w, "New", nil)
+	err := tmpl.ExecuteTemplate(w, "New", nil)
+	if err != nil {
+		log.Print(err.Error())
+	}
 }
 
 func Edit(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +108,10 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		emp.Name = name
 		emp.City = city
 	}
-	tmpl.ExecuteTemplate(w, "Edit", emp)
+	err = tmpl.ExecuteTemplate(w, "Edit", emp)
+	if err != nil {
+		log.Print(err.Error())
+	}
 	defer db.Close()
 }
 
