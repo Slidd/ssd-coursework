@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"ssd-coursework/routes/user"
 	"text/template"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -15,11 +16,31 @@ type Employee struct {
 	City string
 }
 
+type Ticket struct {
+	TicketID     int
+	TicketType   string
+	Status       string
+	CreatedAt    string
+	TicketNumber int
+	Description  string
+	FinderID     string
+	AssignedTo   string
+	Priority     string
+}
+
+type Comment struct {
+	CommentID   int
+	TicketID    int
+	UserID      int
+	Description string
+	TimeStamp   string
+}
+
 func dbConn() (db *sql.DB) {
 	dbDriver := "mysql"
 	dbUser := "admin"
 	dbPass := "admin"
-	dbName := "goblog"
+	dbName := "bug_tracker"
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {
 		panic(err.Error())
@@ -31,23 +52,29 @@ var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	selDB, err := db.Query("SELECT * FROM Employee ORDER BY id DESC")
+	selDB, err := db.Query("SELECT * FROM TICKET ORDER BY ticketID DESC")
 	if err != nil {
 		panic(err.Error())
 	}
-	emp := Employee{}
-	res := []Employee{}
+	ticket := Ticket{}
+	res := []Ticket{}
 	for selDB.Next() {
-		var id int
-		var name, city string
-		err = selDB.Scan(&id, &name, &city)
+		var ticketID, ticketNumber int
+		var title, ticketType, status, createdAt, description, finderID, assignedTo, priority string
+		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &ticketNumber, &description, &finderID, &assignedTo, &priority)
 		if err != nil {
 			panic(err.Error())
 		}
-		emp.Id = id
-		emp.Name = name
-		emp.City = city
-		res = append(res, emp)
+		ticket.TicketID = ticketID
+		ticket.TicketType = ticketType
+		ticket.Status = status
+		ticket.CreatedAt = createdAt
+		ticket.TicketNumber = ticketNumber
+		ticket.Description = description
+		ticket.FinderID = user.GetUsersNameFromAuth(w, r, finderID)
+		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
+		ticket.Priority = priority
+		res = append(res, ticket)
 	}
 	err = tmpl.ExecuteTemplate(w, "Index", res)
 	if err != nil {
@@ -55,6 +82,33 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 }
+
+// func Index(w http.ResponseWriter, r *http.Request) {
+// 	db := dbConn()
+// 	selDB, err := db.Query("SELECT * FROM Employee ORDER BY id DESC")
+// 	if err != nil {
+// 		panic(err.Error())
+// 	}
+// 	emp := Employee{}
+// 	res := []Employee{}
+// 	for selDB.Next() {
+// 		var id int
+// 		var name, city string
+// 		err = selDB.Scan(&id, &name, &city)
+// 		if err != nil {
+// 			panic(err.Error())
+// 		}
+// 		emp.Id = id
+// 		emp.Name = name
+// 		emp.City = city
+// 		res = append(res, emp)
+// 	}
+// 	err = tmpl.ExecuteTemplate(w, "Index", res)
+// 	if err != nil {
+// 		log.Print(err.Error())
+// 	}
+// 	defer db.Close()
+// }
 
 func Show(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
