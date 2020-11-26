@@ -24,6 +24,24 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	templates.RenderTemplate(w, "user", session.Values["profile"])
 }
 
+// GetSessionUsername will return the name of the current session as a string
+func GetSessionUsername(w http.ResponseWriter, r *http.Request) string {
+	sessionUsername := extractUserIDFromSession(w, r)
+	// fmt.Println(sessionUsername)
+	return sessionUsername.(string)
+}
+
+// extractUsernameFromSession will extract the name from Auth0 data and return it as an interface
+func extractUserIDFromSession(w http.ResponseWriter, r *http.Request) interface{} {
+	session, err := app.Store.Get(r, "auth-session")
+	if err != nil {
+		log.Error(err)
+	}
+	// fmt.Println(session.Values["profile"])
+	sessionUsername := session.Values["profile"].(map[string]interface{})["sub"]
+	return sessionUsername
+}
+
 func getUserRole(w http.ResponseWriter, r *http.Request) interface{} {
 	session, err := app.Store.Get(r, "auth-session")
 	if err != nil {

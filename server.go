@@ -39,9 +39,9 @@ func StartServer() {
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
 		negroni.Wrap(http.HandlerFunc(crud.Edit)),
 	))
-	r.Handle("/insert", negroni.New(
+	r.Handle("/addComment", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
-		negroni.Wrap(http.HandlerFunc(crud.Insert)),
+		negroni.Wrap(http.HandlerFunc(crud.AddComment)),
 	))
 	r.Handle("/update", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),

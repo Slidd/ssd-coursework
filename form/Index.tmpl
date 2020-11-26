@@ -7,6 +7,7 @@
       <tr>
         <td>TicketID</td>
         <td>Title</td>
+        <td>Type</td>
         <td>Status</td>
         <td>Date Created</td>
         <td>Ticket Number</td>
@@ -23,6 +24,7 @@
     {{ range . }}
       <tr>
         <td>{{ .TicketID }}</td>
+        <td>{{ .Title }}</td>
         <td> {{ .TicketType }} </td>
         <td>{{ .Status }} </td> 
         <td>{{ .CreatedAt }} </td> 
@@ -31,7 +33,7 @@
         <td>{{ .FinderID }} </td> 
         <td>{{ .AssignedTo }} </td> 
         <td>{{ .Priority }} </td> 
-        <td><a href="/show?id={{ .TicketID }}">View</a></td>
+        <td><a href="/show?ticketID={{ .TicketID }}">View</a></td>
         <td><a href="/edit?id={{ .TicketID }}">Edit</a></td>
         <td><a href="/delete?id={{ .TicketID }}">Delete</a><td>
       </tr>
