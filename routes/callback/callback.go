@@ -72,5 +72,5 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect to logged in page
-	http.Redirect(w, r, "/user", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
