@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"ssd-coursework/app"
 	"ssd-coursework/routes/templates"
+	"strings"
 
 	"github.com/prometheus/common/log"
 )
@@ -87,7 +88,10 @@ func GetUsersNameFromAuth(w http.ResponseWriter, r *http.Request, userID string)
 	url := "https://dev-o6lnq6dg.eu.auth0.com/api/v2/users/" + userID
 	req, _ := http.NewRequest("GET", url, nil)
 	// This is using a test API token, this should be update to pull in a new auto refreshed one
-	req.Header.Add("authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InBJZ1ZMbUM5LXlnUWIzSWtZM0tpaSJ9.eyJpc3MiOiJodHRwczovL2Rldi1vNmxucTZkZy5ldS5hdXRoMC5jb20vIiwic3ViIjoiSWl4NzJLc1JnYWhiNm5FR3NSbjl3TDZHY3kwTjI1cHZAY2xpZW50cyIsImF1ZCI6Imh0dHBzOi8vZGV2LW82bG5xNmRnLmV1LmF1dGgwLmNvbS9hcGkvdjIvIiwiaWF0IjoxNjA2NDE4NTI1LCJleHAiOjE2MDY1MDQ5MjUsImF6cCI6IklpeDcyS3NSZ2FoYjZuRUdzUm45d0w2R2N5ME4yNXB2Iiwic2NvcGUiOiJyZWFkOmNsaWVudF9ncmFudHMgY3JlYXRlOmNsaWVudF9ncmFudHMgZGVsZXRlOmNsaWVudF9ncmFudHMgdXBkYXRlOmNsaWVudF9ncmFudHMgcmVhZDp1c2VycyB1cGRhdGU6dXNlcnMgZGVsZXRlOnVzZXJzIGNyZWF0ZTp1c2VycyByZWFkOnVzZXJzX2FwcF9tZXRhZGF0YSB1cGRhdGU6dXNlcnNfYXBwX21ldGFkYXRhIGRlbGV0ZTp1c2Vyc19hcHBfbWV0YWRhdGEgY3JlYXRlOnVzZXJzX2FwcF9tZXRhZGF0YSByZWFkOnVzZXJfY3VzdG9tX2Jsb2NrcyBjcmVhdGU6dXNlcl9jdXN0b21fYmxvY2tzIGRlbGV0ZTp1c2VyX2N1c3RvbV9ibG9ja3MgY3JlYXRlOnVzZXJfdGlja2V0cyByZWFkOmNsaWVudHMgdXBkYXRlOmNsaWVudHMgZGVsZXRlOmNsaWVudHMgY3JlYXRlOmNsaWVudHMgcmVhZDpjbGllbnRfa2V5cyB1cGRhdGU6Y2xpZW50X2tleXMgZGVsZXRlOmNsaWVudF9rZXlzIGNyZWF0ZTpjbGllbnRfa2V5cyByZWFkOmNvbm5lY3Rpb25zIHVwZGF0ZTpjb25uZWN0aW9ucyBkZWxldGU6Y29ubmVjdGlvbnMgY3JlYXRlOmNvbm5lY3Rpb25zIHJlYWQ6cmVzb3VyY2Vfc2VydmVycyB1cGRhdGU6cmVzb3VyY2Vfc2VydmVycyBkZWxldGU6cmVzb3VyY2Vfc2VydmVycyBjcmVhdGU6cmVzb3VyY2Vfc2VydmVycyByZWFkOmRldmljZV9jcmVkZW50aWFscyB1cGRhdGU6ZGV2aWNlX2NyZWRlbnRpYWxzIGRlbGV0ZTpkZXZpY2VfY3JlZGVudGlhbHMgY3JlYXRlOmRldmljZV9jcmVkZW50aWFscyByZWFkOnJ1bGVzIHVwZGF0ZTpydWxlcyBkZWxldGU6cnVsZXMgY3JlYXRlOnJ1bGVzIHJlYWQ6cnVsZXNfY29uZmlncyB1cGRhdGU6cnVsZXNfY29uZmlncyBkZWxldGU6cnVsZXNfY29uZmlncyByZWFkOmhvb2tzIHVwZGF0ZTpob29rcyBkZWxldGU6aG9va3MgY3JlYXRlOmhvb2tzIHJlYWQ6YWN0aW9ucyB1cGRhdGU6YWN0aW9ucyBkZWxldGU6YWN0aW9ucyBjcmVhdGU6YWN0aW9ucyByZWFkOmVtYWlsX3Byb3ZpZGVyIHVwZGF0ZTplbWFpbF9wcm92aWRlciBkZWxldGU6ZW1haWxfcHJvdmlkZXIgY3JlYXRlOmVtYWlsX3Byb3ZpZGVyIGJsYWNrbGlzdDp0b2tlbnMgcmVhZDpzdGF0cyByZWFkOnRlbmFudF9zZXR0aW5ncyB1cGRhdGU6dGVuYW50X3NldHRpbmdzIHJlYWQ6bG9ncyByZWFkOmxvZ3NfdXNlcnMgcmVhZDpzaGllbGRzIGNyZWF0ZTpzaGllbGRzIHVwZGF0ZTpzaGllbGRzIGRlbGV0ZTpzaGllbGRzIHJlYWQ6YW5vbWFseV9ibG9ja3MgZGVsZXRlOmFub21hbHlfYmxvY2tzIHVwZGF0ZTp0cmlnZ2VycyByZWFkOnRyaWdnZXJzIHJlYWQ6Z3JhbnRzIGRlbGV0ZTpncmFudHMgcmVhZDpndWFyZGlhbl9mYWN0b3JzIHVwZGF0ZTpndWFyZGlhbl9mYWN0b3JzIHJlYWQ6Z3VhcmRpYW5fZW5yb2xsbWVudHMgZGVsZXRlOmd1YXJkaWFuX2Vucm9sbG1lbnRzIGNyZWF0ZTpndWFyZGlhbl9lbnJvbGxtZW50X3RpY2tldHMgcmVhZDp1c2VyX2lkcF90b2tlbnMgY3JlYXRlOnBhc3N3b3Jkc19jaGVja2luZ19qb2IgZGVsZXRlOnBhc3N3b3Jkc19jaGVja2luZ19qb2IgcmVhZDpjdXN0b21fZG9tYWlucyBkZWxldGU6Y3VzdG9tX2RvbWFpbnMgY3JlYXRlOmN1c3RvbV9kb21haW5zIHVwZGF0ZTpjdXN0b21fZG9tYWlucyByZWFkOmVtYWlsX3RlbXBsYXRlcyBjcmVhdGU6ZW1haWxfdGVtcGxhdGVzIHVwZGF0ZTplbWFpbF90ZW1wbGF0ZXMgcmVhZDptZmFfcG9saWNpZXMgdXBkYXRlOm1mYV9wb2xpY2llcyByZWFkOnJvbGVzIGNyZWF0ZTpyb2xlcyBkZWxldGU6cm9sZXMgdXBkYXRlOnJvbGVzIHJlYWQ6cHJvbXB0cyB1cGRhdGU6cHJvbXB0cyByZWFkOmJyYW5kaW5nIHVwZGF0ZTpicmFuZGluZyBkZWxldGU6YnJhbmRpbmcgcmVhZDpsb2dfc3RyZWFtcyBjcmVhdGU6bG9nX3N0cmVhbXMgZGVsZXRlOmxvZ19zdHJlYW1zIHVwZGF0ZTpsb2dfc3RyZWFtcyBjcmVhdGU6c2lnbmluZ19rZXlzIHJlYWQ6c2lnbmluZ19rZXlzIHVwZGF0ZTpzaWduaW5nX2tleXMgcmVhZDpsaW1pdHMgdXBkYXRlOmxpbWl0cyBjcmVhdGU6cm9sZV9tZW1iZXJzIHJlYWQ6cm9sZV9tZW1iZXJzIGRlbGV0ZTpyb2xlX21lbWJlcnMiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.fNQCS0TIEcCXmR7nFVPnNejA3oxXKwmUqPimbkPB_15KfarwgxmahSYWIcrQOxIQ19GqDwKSol7cNtTq17UqzZCj4PoKiutL8x_VM-86SOdMFs5ebJ2yuMZQmT3jalfJNSgCG98sV1Jrmp1zBsi-V8Yli3a9c2Mdw2oO5x31c89yaRzuawKnOGBBg5im7WviuNWLBl-dEtYq3ONlBbdQO-6mFgvnEHm2EY6bblYef39qs5j2Efre6SYgeVM2ebxAo6qPL7Uljg37j9xUIuuT2Xevqu6KKNPlFFNrlF5O6Lbm2tiWzholqNCT_b90dBZ3aWUoOzhLDaMukW3BfDdedw")
+
+	accessToken := getAuthMgmtAPIToken()
+
+	req.Header.Add("authorization", "Bearer "+accessToken)
 
 	res, _ := http.DefaultClient.Do(req)
 
@@ -103,6 +107,57 @@ func GetUsersNameFromAuth(w http.ResponseWriter, r *http.Request, userID string)
 	defer res.Body.Close()
 
 	return name
+}
+
+// GetUserIDFromName returns the ID associated with a name
+func GetUserIDFromName(w http.ResponseWriter, r *http.Request, username string) string {
+	accessToken := getAuthMgmtAPIToken()
+
+	url := "https://dev-o6lnq6dg.eu.auth0.com/api/v2/users?q=" + username
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("authorization", "Bearer "+accessToken)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+
+	var data []map[string]interface{}
+	body, _ := ioutil.ReadAll(res.Body)
+	err := json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		panic(err)
+	}
+	userID := fmt.Sprint(data[0]["user_id"])
+	return userID
+}
+
+// getAuthMgmtApiToken will get the Auth0 Management API token to be used in calls to the management API
+// Auth0 recycles tokens every 30000 seconds so need to get a new one each time
+func getAuthMgmtAPIToken() string {
+	url := "https://dev-o6lnq6dg.eu.auth0.com/oauth/token"
+
+	payload := strings.NewReader("{\"client_id\":\"Iix72KsRgahb6nEGsRn9wL6Gcy0N25pv\",\"client_secret\":\"C0-2oxWnzskRJU--7n2Q9OOFS6Sr6ocuzjfzgzQ2LdBDTU2f1frOxC4ZGXpM594V\",\"audience\":\"https://dev-o6lnq6dg.eu.auth0.com/api/v2/\",\"grant_type\":\"client_credentials\"}")
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("content-type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer res.Body.Close()
+
+	// Decode byte data to string in json format
+	var data map[string]interface{}
+	body, _ := ioutil.ReadAll(res.Body)
+	err = json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprint(data["access_token"])
 }
 
 // Helper function to check the values inside the user interface
