@@ -221,28 +221,66 @@ func New(w http.ResponseWriter, r *http.Request) {
 
 func Edit(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	nId := r.URL.Query().Get("id")
-	selDB, err := db.Query("SELECT * FROM Employee WHERE id=?", nId)
+	nId := r.URL.Query().Get("ticketID")
+	selDB, err := db.Query("SELECT * FROM TICKET WHERE ticketID=?", nId)
 	if err != nil {
 		panic(err.Error())
 	}
-	emp := Employee{}
+	ticket := Ticket{}
 	for selDB.Next() {
-		var id int
-		var name, city string
-		err = selDB.Scan(&id, &name, &city)
+		var ticketID, ticketNumber int
+		var title, ticketType, status, createdAt, description, finderID, assignedTo, priority string
+		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &ticketNumber, &description, &finderID, &assignedTo, &priority)
 		if err != nil {
 			panic(err.Error())
 		}
-		emp.Id = id
-		emp.Name = name
-		emp.City = city
+		ticket.TicketID = ticketID
+		ticket.Title = title
+		ticket.TicketType = ticketType
+		ticket.Status = status
+		ticket.CreatedAt = createdAt
+		ticket.TicketNumber = ticketNumber
+		ticket.Description = description
+		ticket.FinderID = user.GetUsersNameFromAuth(w, r, finderID)
+		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
+		ticket.Priority = priority
+		// currentTicketID = ticketID
 	}
-	err = tmpl.ExecuteTemplate(w, "Edit", emp)
+	user.GetUserIDFromName(w, r, "smith51@hotmail.co.uk")
+	fmt.Println(ticket)
+	err = tmpl.ExecuteTemplate(w, "Edit", ticket)
 	if err != nil {
 		log.Print(err.Error())
 	}
 	defer db.Close()
+}
+
+func UpdateTicket(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	if r.Method == "POST" {
+		title := r.FormValue("title")
+		ticketType := r.FormValue("ticketType")
+		status := r.FormValue("status")
+		ticketNumber := r.FormValue("ticketNumber")
+		description := r.FormValue("description")
+		finderID := user.GetUserIDFromName(w, r, r.FormValue("finderID"))
+		assignedTo := user.GetUserIDFromName(w, r, r.FormValue("assignedTo"))
+		priority := r.FormValue("priority")
+		ticketID := r.FormValue("uid")
+
+		insForm, err := db.Prepare(`UPDATE ticket SET Title=?, type=?, status=?, ticketNumber=?, description=?,
+				finderID=?, assignedTo=?, priority=? WHERE ticketID=?`)
+		if err != nil {
+			panic(err.Error())
+		}
+		_, err = insForm.Exec(title, ticketType, status, ticketNumber, description, finderID, assignedTo, priority, ticketID)
+		if err != nil {
+			log.Print(err.Error())
+		}
+		log.Println("UPDATE: TICKET ID: " + ticketID + " | Ticket: " + title + " | ticketType: " + ticketType)
+	}
+	defer db.Close()
+	http.Redirect(w, r, "/", 301)
 }
 
 func Insert(w http.ResponseWriter, r *http.Request) {
@@ -264,25 +302,25 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 301)
 }
 
-func Update(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	if r.Method == "POST" {
-		name := r.FormValue("name")
-		city := r.FormValue("city")
-		id := r.FormValue("uid")
-		insForm, err := db.Prepare("UPDATE Employee SET name=?, city=? WHERE id=?")
-		if err != nil {
-			panic(err.Error())
-		}
-		_, err = insForm.Exec(name, city, id)
-		if err != nil {
-			log.Print(err.Error())
-		}
-		log.Println("UPDATE: Name: " + name + " | City: " + city)
-	}
-	defer db.Close()
-	http.Redirect(w, r, "/", 301)
-}
+// func Update(w http.ResponseWriter, r *http.Request) {
+// 	db := dbConn()
+// 	if r.Method == "POST" {
+// 		name := r.FormValue("name")
+// 		city := r.FormValue("city")
+// 		id := r.FormValue("uid")
+// 		insForm, err := db.Prepare("UPDATE Employee SET name=?, city=? WHERE id=?")
+// 		if err != nil {
+// 			panic(err.Error())
+// 		}
+// 		_, err = insForm.Exec(name, city, id)
+// 		if err != nil {
+// 			log.Print(err.Error())
+// 		}
+// 		log.Println("UPDATE: Name: " + name + " | City: " + city)
+// 	}
+// 	defer db.Close()
+// 	http.Redirect(w, r, "/", 301)
+// }
 
 func Delete(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()

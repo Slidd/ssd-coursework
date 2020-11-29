@@ -34,7 +34,7 @@
         <td>{{ .AssignedTo }} </td> 
         <td>{{ .Priority }} </td> 
         <td><a href="/show?ticketID={{ .TicketID }}">View</a></td>
-        <td><a href="/edit?id={{ .TicketID }}">Edit</a></td>
+        <td><a href="/edit?ticketID={{ .TicketID }}">Edit</a></td>
         <td><a href="/delete?id={{ .TicketID }}">Delete</a><td>
       </tr>
     {{ end }}

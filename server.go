@@ -46,7 +46,7 @@ func StartServer() {
 	))
 	r.Handle("/update", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
-		negroni.Wrap(http.HandlerFunc(crud.Update)),
+		negroni.Wrap(http.HandlerFunc(crud.UpdateTicket)),
 	))
 	r.Handle("/delete", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
