@@ -219,6 +219,8 @@ func New(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Edit is called when the user clicks on the edit button
+// will load the values of the ticket ID into the form
 func Edit(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	nId := r.URL.Query().Get("ticketID")
@@ -255,6 +257,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 }
 
+// UpdateTicket is called when the user clicks on the submit button of the update form
 func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
@@ -283,6 +286,7 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 301)
 }
 
+// Insert UPDATE THIS TO CREATE NEW TICKET
 func Insert(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
@@ -302,26 +306,7 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 301)
 }
 
-// func Update(w http.ResponseWriter, r *http.Request) {
-// 	db := dbConn()
-// 	if r.Method == "POST" {
-// 		name := r.FormValue("name")
-// 		city := r.FormValue("city")
-// 		id := r.FormValue("uid")
-// 		insForm, err := db.Prepare("UPDATE Employee SET name=?, city=? WHERE id=?")
-// 		if err != nil {
-// 			panic(err.Error())
-// 		}
-// 		_, err = insForm.Exec(name, city, id)
-// 		if err != nil {
-// 			log.Print(err.Error())
-// 		}
-// 		log.Println("UPDATE: Name: " + name + " | City: " + city)
-// 	}
-// 	defer db.Close()
-// 	http.Redirect(w, r, "/", 301)
-// }
-
+// Delete REMOVE DELETE, DON'T THINK WE NEED THIS ANYMORE
 func Delete(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	emp := r.URL.Query().Get("id")
