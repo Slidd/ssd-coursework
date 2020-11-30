@@ -248,7 +248,6 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		ticket.Priority = priority
 		// currentTicketID = ticketID
 	}
-	user.GetUserIDFromName(w, r, "smith51@hotmail.co.uk")
 	fmt.Println(ticket)
 	err = tmpl.ExecuteTemplate(w, "Edit", ticket)
 	if err != nil {

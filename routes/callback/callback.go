@@ -4,6 +4,7 @@ package callback
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"ssd-coursework/app"
@@ -72,5 +73,6 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect to logged in page
+	fmt.Println("did you get here?")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
