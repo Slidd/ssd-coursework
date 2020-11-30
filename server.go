@@ -16,6 +16,9 @@ import (
 
 // StartServer start server and routes
 func StartServer() {
+	go http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://localhost:3000/"+r.URL.String(), http.StatusMovedPermanently)
+	}))
 	r := mux.NewRouter()
 
 	r.Handle("/", negroni.New(
@@ -75,13 +78,8 @@ func StartServer() {
 	r.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	http.Handle("/", r)
 	log.Print("Server listening on https://localhost:3000/")
-	log.Fatal(http.ListenAndServeTLS("0.0.0.0:3000", "../localhost.crt", "../localhost.key", nil))
-	// log.Fatal(http.ListenAndServe("0.0.0.0:3000", nil))
-	// ToDo: add in redirect
-	// http.ListenAndServe(":8080", http.HandlerFunc(httpsRedirect))
-}
 
-// func httpsRedirect(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Println("redirecting user")
-// 	http.Redirect(w, r, "https://127.0.0.1:3000"+r.RequestURI, http.StatusMovedPermanently)
-// }
+	log.Fatal(http.ListenAndServeTLS("127.0.0.1:3000", "../localhost.crt", "../localhost.key", nil))
+	// go log.Fatal(http.ListenAndServe("0.0.0.0:3000", nil))
+	// ToDo: add in redirect
+}
