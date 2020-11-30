@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"ssd-coursework/routes/callback"
@@ -54,12 +53,16 @@ func StartServer() {
 	))
 
 	r.HandleFunc("/login", login.LoginHandler)
-	r.HandleFunc("/logout", logout.LogoutHandler)
+	// r.HandleFunc("/logout", logout.LogoutHandler)
 	r.HandleFunc("/callback", callback.CallbackHandler)
 	r.Handle("/user", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
 		negroni.Wrap(http.HandlerFunc(user.UserHandler)),
 	))
+	// r.Handle("/callback", negroni.New(
+	// 	negroni.HandlerFunc(middlewares.IsAuthenticated),
+	// 	negroni.Wrap(http.HandlerFunc(callback.CallbackHandler)),
+	// ))
 
 	// http.HandleFunc("/index", crud.Index)
 	// http.HandleFunc("/show", crud.Show)
@@ -72,13 +75,13 @@ func StartServer() {
 	r.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	http.Handle("/", r)
 	log.Print("Server listening on https://localhost:3000/")
-	log.Fatal(http.ListenAndServeTLS("127.0.0.1:3000", "../localhost.crt", "../localhost.key", nil))
-
+	log.Fatal(http.ListenAndServeTLS("0.0.0.0:3000", "../localhost.crt", "../localhost.key", nil))
+	// log.Fatal(http.ListenAndServe("0.0.0.0:3000", nil))
 	// ToDo: add in redirect
 	// http.ListenAndServe(":8080", http.HandlerFunc(httpsRedirect))
 }
 
-func httpsRedirect(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("redirecting user")
-	http.Redirect(w, r, "https://127.0.0.1:3000"+r.RequestURI, http.StatusMovedPermanently)
-}
+// func httpsRedirect(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Println("redirecting user")
+// 	http.Redirect(w, r, "https://127.0.0.1:3000"+r.RequestURI, http.StatusMovedPermanently)
+// }

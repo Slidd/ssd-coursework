@@ -27,7 +27,7 @@ func NewAuthenticator() (*Authenticator, error) {
 	conf := oauth2.Config{
 		ClientID:     "UmOdRUfJnUUgNB5zHhlltXjTLqQJp5GM",                                 // put into env variable
 		ClientSecret: "5W17SYrfStEKXnAfW39Tk-a4NfqNOXlElmIKaFoCqy0JEmk811j0cYSvrMuNwEoz", // put into env variable
-		RedirectURL:  "http://localhost:3000/callback",                                   // update
+		RedirectURL:  "https://localhost:3000/callback",                                  // update
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile"},
 	}
