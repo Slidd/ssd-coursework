@@ -42,6 +42,10 @@ func StartServer() {
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
 		negroni.Wrap(http.HandlerFunc(crud.Edit)),
 	))
+	r.Handle("/newTicket", negroni.New(
+		negroni.HandlerFunc(middlewares.IsAuthenticated),
+		negroni.Wrap(http.HandlerFunc(crud.NewTicket)),
+	))
 	r.Handle("/addComment", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
 		negroni.Wrap(http.HandlerFunc(crud.AddComment)),
@@ -75,6 +79,7 @@ func StartServer() {
 	// http.HandleFunc("/update", crud.Update)
 	// http.HandleFunc("/delete", crud.Delete)
 
+	// Files we want to serve to the web application (i.e. files that will be used during execution)
 	r.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	http.Handle("/", r)
 	log.Print("Server listening on https://localhost:3000/")

@@ -3,6 +3,7 @@ package crud
 import (
 	"database/sql"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"ssd-coursework/routes/user"
@@ -21,16 +22,15 @@ type Employee struct {
 }
 
 type Ticket struct {
-	TicketID     int
-	Title        string
-	TicketType   string
-	Status       string
-	CreatedAt    string
-	TicketNumber int
-	Description  string
-	FinderID     string
-	AssignedTo   string
-	Priority     string
+	TicketID    int
+	Title       string
+	TicketType  string
+	Status      string
+	CreatedAt   string
+	Description string
+	FinderID    string
+	AssignedTo  string
+	Priority    string
 }
 
 type Comment struct {
@@ -65,9 +65,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	ticket := Ticket{}
 	res := []Ticket{}
 	for selDB.Next() {
-		var ticketID, ticketNumber int
+		var ticketID int
 		var title, ticketType, status, createdAt, description, finderID, assignedTo, priority string
-		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &ticketNumber, &description, &finderID, &assignedTo, &priority)
+		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &description, &finderID, &assignedTo, &priority)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -76,7 +76,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		ticket.TicketType = ticketType
 		ticket.Status = status
 		ticket.CreatedAt = createdAt
-		ticket.TicketNumber = ticketNumber
 		ticket.Description = description
 		ticket.FinderID = user.GetUsersNameFromAuth(w, r, finderID)
 		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
@@ -127,9 +126,9 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	}
 	ticket := Ticket{}
 	for selDB.Next() {
-		var ticketID, ticketNumber int
+		var ticketID int
 		var title, ticketType, status, createdAt, description, finderID, assignedTo, priority string
-		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &ticketNumber, &description, &finderID, &assignedTo, &priority)
+		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &description, &finderID, &assignedTo, &priority)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -138,7 +137,6 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		ticket.TicketType = ticketType
 		ticket.Status = status
 		ticket.CreatedAt = createdAt
-		ticket.TicketNumber = ticketNumber
 		ticket.Description = description
 		ticket.FinderID = user.GetUsersNameFromAuth(w, r, finderID)
 		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
@@ -196,7 +194,7 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		userID := user.GetSessionUsername(w, r)
 		ticketID := currentTicketID
-		description := r.FormValue("description")
+		description := html.EscapeString(r.FormValue("description"))
 		insForm, err := db.Prepare("INSERT INTO Comment(userID, ticketID, comment) VALUES(?,?,?)")
 		if err != nil {
 			panic(err.Error())
@@ -230,9 +228,9 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	}
 	ticket := Ticket{}
 	for selDB.Next() {
-		var ticketID, ticketNumber int
+		var ticketID int
 		var title, ticketType, status, createdAt, description, finderID, assignedTo, priority string
-		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &ticketNumber, &description, &finderID, &assignedTo, &priority)
+		err = selDB.Scan(&ticketID, &title, &ticketType, &status, &createdAt, &description, &finderID, &assignedTo, &priority)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -241,7 +239,6 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		ticket.TicketType = ticketType
 		ticket.Status = status
 		ticket.CreatedAt = createdAt
-		ticket.TicketNumber = ticketNumber
 		ticket.Description = description
 		ticket.FinderID = user.GetUsersNameFromAuth(w, r, finderID)
 		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
@@ -260,26 +257,52 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
-		title := r.FormValue("title")
-		ticketType := r.FormValue("ticketType")
-		status := r.FormValue("status")
-		ticketNumber := r.FormValue("ticketNumber")
-		description := r.FormValue("description")
-		finderID := user.GetUserIDFromName(w, r, r.FormValue("finderID"))
-		assignedTo := user.GetUserIDFromName(w, r, r.FormValue("assignedTo"))
-		priority := r.FormValue("priority")
-		ticketID := r.FormValue("uid")
+		title := html.EscapeString(r.FormValue("title"))
+		ticketType := html.EscapeString(r.FormValue("ticketType"))
+		status := html.EscapeString(r.FormValue("status"))
+		description := html.EscapeString(r.FormValue("description"))
+		finderID := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("finderID")))
+		assignedTo := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
+		priority := html.EscapeString(r.FormValue("priority"))
+		ticketID := html.EscapeString(r.FormValue("uid"))
 
-		insForm, err := db.Prepare(`UPDATE ticket SET Title=?, type=?, status=?, ticketNumber=?, description=?,
+		insForm, err := db.Prepare(`UPDATE ticket SET Title=?, type=?, status=?, description=?,
 				finderID=?, assignedTo=?, priority=? WHERE ticketID=?`)
 		if err != nil {
 			panic(err.Error())
 		}
-		_, err = insForm.Exec(title, ticketType, status, ticketNumber, description, finderID, assignedTo, priority, ticketID)
+		_, err = insForm.Exec(title, ticketType, status, description, finderID, assignedTo, priority, ticketID)
 		if err != nil {
 			log.Print(err.Error())
 		}
 		log.Println("UPDATE: TICKET ID: " + ticketID + " | Ticket: " + title + " | ticketType: " + ticketType)
+	}
+	defer db.Close()
+	http.Redirect(w, r, "/", 301)
+}
+
+// NewTicket creates a new ticket
+func NewTicket(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	if r.Method == "POST" {
+		title := html.EscapeString(r.FormValue("title"))
+		ticketType := html.EscapeString(r.FormValue("type"))
+		status := "open"
+		description := html.EscapeString(r.FormValue("description"))
+		finderName := html.EscapeString(user.GetSessionUsername(w, r))
+		finderID := user.GetUserIDFromName(w, r, finderName)
+		assignedTo := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
+		priority := html.EscapeString(r.FormValue("priority"))
+
+		insForm, err := db.Prepare("INSERT INTO Ticket(title, type, status, description, finderID, assignedTo, priority) VALUES(?,?,?,?,?,?,?)")
+		if err != nil {
+			panic(err.Error())
+		}
+		_, err = insForm.Exec(title, ticketType, status, description, finderID, assignedTo, priority)
+		if err != nil {
+			log.Print(err.Error())
+		}
+		// log.Println("INSERT: Name: " + name + " | City: " + city)
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)

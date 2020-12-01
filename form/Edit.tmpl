@@ -8,11 +8,10 @@
       <label> Ticket Type </label><input type="text" name="ticketType" value="{{ .TicketType }}"  /><br />
       <label> Status </label><input type="text" name="status" value="{{ .Status }}"  /><br />
       <label> CreatedAt </label><input type="text" name="createdAt" value="{{ .CreatedAt }}"  /><br />
-      <label> TicketNumber </label><input type="text" name="TicketNumber" value="{{ .TicketNumber }}"  /><br />
       <label> Description </label><input type="text" name="description" value="{{ .Description }}"  /><br />
       <label> Finder </label><input type="text" name="finderID" value="{{ .FinderID }}"  /><br />
       <label> Assigned To </label><input type="text" name="assignedTo" value="{{ .AssignedTo }}"  /><br />
-      <label> Priority </label><input type="text" name="Priority" value="{{ .Priority }}"  /><br />
+      <label> Priority </label><input type="text" name="priority" value="{{ .Priority }}"  /><br />
       <input type="submit" value="Update Ticket" />
     </form><br />    
   {{ template "Footer" }}
