@@ -12,6 +12,7 @@
     </br >
     <hr>
     <h2><b>Comments</b></h2>
+    <p style="color:red;"><b> {{ .commentError }} </b></p>
     {{ range .comments }}
       <p> <b>Comment ID:</b> {{ .CommentID }} </p>
       <p> <b>Time:</b> {{ .TimeStamp }} </p>

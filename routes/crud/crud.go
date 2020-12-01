@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"ssd-coursework/routes/user"
+	"ssd-coursework/validator"
 	"strconv"
+	"strings"
 	"text/template"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -53,8 +55,15 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
-var tmpl = template.Must(template.ParseGlob("form/*"))
-var currentTicketID int
+// Variables to help validate input when editing a ticket or adding a comment
+var (
+	tmpl            = template.Must(template.ParseGlob("form/*"))
+	currentTicketID int
+	ticketStatus    string
+	commentError    = false
+	editTicketID    int
+	currentTicket   Ticket
+)
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
@@ -142,13 +151,25 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
 		ticket.Priority = priority
 		currentTicketID = ticketID
+		ticketStatus = status
 	}
 	fmt.Println(ticket)
 	comments := getComments(w, r, ticket.TicketID)
-	err = tmpl.ExecuteTemplate(w, "Show", M{
-		"ticket":   ticket,
-		"comments": comments,
-	})
+	if commentError {
+		err = tmpl.ExecuteTemplate(w, "Show", M{
+			"ticket":       ticket,
+			"comments":     comments,
+			"commentError": "ERROR: Cannot comment on a resolved Ticket",
+		})
+		// Reset comment error
+		commentError = false
+	} else {
+		err = tmpl.ExecuteTemplate(w, "Show", M{
+			"ticket":   ticket,
+			"comments": comments,
+		})
+	}
+
 	if err != nil {
 		log.Print(err.Error())
 	}
@@ -189,25 +210,30 @@ func getComments(w http.ResponseWriter, r *http.Request, ticketID int) []Comment
 
 // AddComment Adds a comment to a ticket
 func AddComment(w http.ResponseWriter, r *http.Request) {
-	// fmt.Println(user.GetSessionUsername(w, r))
-	db := dbConn()
-	if r.Method == "POST" {
-		userID := user.GetSessionUsername(w, r)
-		ticketID := currentTicketID
-		description := html.EscapeString(r.FormValue("description"))
-		insForm, err := db.Prepare("INSERT INTO Comment(userID, ticketID, comment) VALUES(?,?,?)")
-		if err != nil {
-			panic(err.Error())
+	if ticketStatus != "Closed" {
+		db := dbConn()
+		if r.Method == "POST" {
+			userID := user.GetSessionUsername(w, r)
+			ticketID := currentTicketID
+			description := html.EscapeString(r.FormValue("description"))
+			insForm, err := db.Prepare("INSERT INTO Comment(userID, ticketID, comment) VALUES(?,?,?)")
+			if err != nil {
+				panic(err.Error())
+			}
+			_, err = insForm.Exec(userID, ticketID, description)
+			if err != nil {
+				log.Print(err.Error())
+			}
+			log.Println("INSERT: UserID: " + userID + " | ticketID: " + strconv.Itoa(ticketID) + " | description: " + description)
 		}
-		_, err = insForm.Exec(userID, ticketID, description)
-		if err != nil {
-			log.Print(err.Error())
-		}
-		log.Println("INSERT: UserID: " + userID + " | ticketID: " + strconv.Itoa(ticketID) + " | description: " + description)
+		defer db.Close()
+		urlRedirect := "/show?ticketID=" + strconv.Itoa(currentTicketID)
+		http.Redirect(w, r, urlRedirect, 301)
+	} else {
+		commentError = true
+		urlRedirect := "/show?ticketID=" + strconv.Itoa(currentTicketID)
+		http.Redirect(w, r, urlRedirect, 301)
 	}
-	defer db.Close()
-	urlRedirect := "/show?ticketID=" + strconv.Itoa(currentTicketID)
-	http.Redirect(w, r, urlRedirect, 301)
 }
 
 func New(w http.ResponseWriter, r *http.Request) {
@@ -244,9 +270,15 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
 		ticket.Priority = priority
 		// currentTicketID = ticketID
+		ticketStatus = status
+		editTicketID = ticketID
+		currentTicket = ticket
 	}
 	fmt.Println(ticket)
-	err = tmpl.ExecuteTemplate(w, "Edit", ticket)
+	err = tmpl.ExecuteTemplate(w, "Edit", M{
+		"tickets":   ticket,
+		"editError": nil,
+	})
 	if err != nil {
 		log.Print(err.Error())
 	}
@@ -262,23 +294,55 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 		status := html.EscapeString(r.FormValue("status"))
 		description := html.EscapeString(r.FormValue("description"))
 		finderID := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("finderID")))
-		assignedTo := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
+		assignedTo := ""
+		if strings.TrimSpace(html.EscapeString(r.FormValue("assignedTo"))) != "" {
+			assignedTo = user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
+		}
+		// assignedTo := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
 		priority := html.EscapeString(r.FormValue("priority"))
 		ticketID := html.EscapeString(r.FormValue("uid"))
 
-		insForm, err := db.Prepare(`UPDATE ticket SET Title=?, type=?, status=?, description=?,
+		if strings.TrimSpace(assignedTo) != "" {
+			if validator.CanChangeTicketStatus(w, r, ticketStatus, status) {
+				insForm, err := db.Prepare(`UPDATE ticket SET Title=?, type=?, status=?, description=?,
 				finderID=?, assignedTo=?, priority=? WHERE ticketID=?`)
-		if err != nil {
-			panic(err.Error())
+				if err != nil {
+					panic(err.Error())
+				}
+				_, err = insForm.Exec(title, ticketType, status, description, finderID, assignedTo, priority, ticketID)
+				if err != nil {
+					log.Print(err.Error())
+				}
+				log.Println("UPDATE: TICKET ID: " + ticketID + " | Ticket: " + title + " | ticketType: " + ticketType)
+				defer db.Close()
+				http.Redirect(w, r, "/", 301)
+			} else {
+				editError := "Insufficient privileges to change the status of the ticket"
+				err := tmpl.ExecuteTemplate(w, "Edit", M{
+					"tickets":   currentTicket,
+					"editError": editError,
+				})
+				if err != nil {
+					log.Print(err.Error())
+				}
+				defer db.Close()
+				http.Redirect(w, r, "/edit?ticketID="+strconv.Itoa(currentTicketID), 301)
+			}
+		} else {
+			editError := "Assigned To field can not be left Empty"
+			err := tmpl.ExecuteTemplate(w, "Edit", M{
+				"tickets":   currentTicket,
+				"editError": editError,
+			})
+			if err != nil {
+				log.Print(err.Error())
+			}
+			defer db.Close()
+			http.Redirect(w, r, "/edit?ticketID="+strconv.Itoa(currentTicketID), 301)
 		}
-		_, err = insForm.Exec(title, ticketType, status, description, finderID, assignedTo, priority, ticketID)
-		if err != nil {
-			log.Print(err.Error())
-		}
-		log.Println("UPDATE: TICKET ID: " + ticketID + " | Ticket: " + title + " | ticketType: " + ticketType)
 	}
-	defer db.Close()
-	http.Redirect(w, r, "/", 301)
+	// defer db.Close()
+	// http.Redirect(w, r, "/", 301)
 }
 
 // NewTicket creates a new ticket
@@ -291,16 +355,28 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 		description := html.EscapeString(r.FormValue("description"))
 		finderName := html.EscapeString(user.GetSessionUsername(w, r))
 		finderID := user.GetUserIDFromName(w, r, finderName)
-		assignedTo := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
-		priority := html.EscapeString(r.FormValue("priority"))
-
-		insForm, err := db.Prepare("INSERT INTO Ticket(title, type, status, description, finderID, assignedTo, priority) VALUES(?,?,?,?,?,?,?)")
-		if err != nil {
-			panic(err.Error())
+		assignedTo := ""
+		if strings.TrimSpace(html.EscapeString(r.FormValue("assignedTo"))) != "" {
+			assignedTo = user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
 		}
-		_, err = insForm.Exec(title, ticketType, status, description, finderID, assignedTo, priority)
-		if err != nil {
-			log.Print(err.Error())
+		priority := html.EscapeString(r.FormValue("priority"))
+		if strings.TrimSpace(assignedTo) != "" {
+			insForm, err := db.Prepare("INSERT INTO Ticket(title, type, status, description, finderID, assignedTo, priority) VALUES(?,?,?,?,?,?,?)")
+			if err != nil {
+				panic(err.Error())
+			}
+			_, err = insForm.Exec(title, ticketType, status, description, finderID, assignedTo, priority)
+			if err != nil {
+				log.Print(err.Error())
+			}
+		} else {
+			commentError := "Assigned To field can not be left Empty"
+			err := tmpl.ExecuteTemplate(w, "New", M{
+				"commentError": commentError,
+			})
+			if err != nil {
+				log.Print(err.Error())
+			}
 		}
 		// log.Println("INSERT: Name: " + name + " | City: " + city)
 	}
