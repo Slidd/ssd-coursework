@@ -5,7 +5,6 @@
     <p> <b>Ticket Type:</b> {{ .ticket.TicketType }}<p>
     <p> <b>Status:</b> {{ .ticket.Status }}<p>
     <p> <b>Date Created:</b> {{ .ticket.CreatedAt }}<p>
-    <p> <b>Ticket Number:</b> {{ .ticket.TicketNumber }}<p>
     <p> <b>Description:</b> {{ .ticket.Description }}<p>
     <p> <b>Finder:</b> {{ .ticket.FinderID }}<p>
     <p> <b>Assigned To:</b> {{ .ticket.AssignedTo }}<p>
@@ -13,7 +12,6 @@
     </br >
     <hr>
     <h2><b>Comments</b></h2>
-    <a href="/show?ticketID={{ .TicketID }}">Add New Comment</a>
     {{ range .comments }}
       <p> <b>Comment ID:</b> {{ .CommentID }} </p>
       <p> <b>Time:</b> {{ .TimeStamp }} </p>
