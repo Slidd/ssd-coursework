@@ -28,7 +28,7 @@ func AuthorizedToAccess(w http.ResponseWriter, r *http.Request, next http.Handle
 	if user.IsDeveloper(w, r) || user.IsClient(w, r) || user.IsTester(w, r) {
 		next(w, r)
 	} else {
-		http.Error(w, "Not Authorized to use application", http.StatusInternalServerError)
+		http.Error(w, "Not Authorized to use application. Please contact an admin to gain access.", http.StatusInternalServerError)
 		return
 	}
 }

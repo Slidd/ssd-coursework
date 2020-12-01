@@ -16,6 +16,7 @@ import (
 
 // StartServer start server and routes
 func StartServer() {
+	// Redirect HTTP to HTTPS
 	go http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://localhost:3000/"+r.URL.String(), http.StatusMovedPermanently)
 	}))
@@ -32,44 +33,45 @@ func StartServer() {
 	))
 	r.Handle("/show", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
+		negroni.HandlerFunc(middlewares.AuthorizedToAccess),
 		negroni.Wrap(http.HandlerFunc(crud.Show)),
 	))
 	r.Handle("/new", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
+		negroni.HandlerFunc(middlewares.AuthorizedToAccess),
 		negroni.Wrap(http.HandlerFunc(crud.New)),
-	))
-	r.Handle("/edit", negroni.New(
-		negroni.HandlerFunc(middlewares.IsAuthenticated),
-		negroni.Wrap(http.HandlerFunc(crud.Edit)),
 	))
 	r.Handle("/newTicket", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
+		negroni.HandlerFunc(middlewares.AuthorizedToAccess),
 		negroni.Wrap(http.HandlerFunc(crud.NewTicket)),
+	))
+	r.Handle("/edit", negroni.New(
+		negroni.HandlerFunc(middlewares.IsAuthenticated),
+		negroni.HandlerFunc(middlewares.AuthorizedToAccess),
+		negroni.Wrap(http.HandlerFunc(crud.Edit)),
 	))
 	r.Handle("/addComment", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
+		negroni.HandlerFunc(middlewares.AuthorizedToAccess),
 		negroni.Wrap(http.HandlerFunc(crud.AddComment)),
 	))
 	r.Handle("/update", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
+		negroni.HandlerFunc(middlewares.AuthorizedToAccess),
 		negroni.Wrap(http.HandlerFunc(crud.UpdateTicket)),
 	))
-	r.Handle("/delete", negroni.New(
-		negroni.HandlerFunc(middlewares.IsAuthenticated),
-		negroni.Wrap(http.HandlerFunc(crud.Delete)),
-	))
+	// r.Handle("/delete", negroni.New(
+	// 	negroni.HandlerFunc(middlewares.IsAuthenticated),
+	// 	negroni.Wrap(http.HandlerFunc(crud.Delete)),
+	// ))
 
 	r.HandleFunc("/login", login.LoginHandler)
-	// r.HandleFunc("/logout", logout.LogoutHandler)
 	r.HandleFunc("/callback", callback.CallbackHandler)
 	r.Handle("/user", negroni.New(
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
 		negroni.Wrap(http.HandlerFunc(user.UserHandler)),
 	))
-	// r.Handle("/callback", negroni.New(
-	// 	negroni.HandlerFunc(middlewares.IsAuthenticated),
-	// 	negroni.Wrap(http.HandlerFunc(callback.CallbackHandler)),
-	// ))
 
 	// http.HandleFunc("/index", crud.Index)
 	// http.HandleFunc("/show", crud.Show)
@@ -85,6 +87,4 @@ func StartServer() {
 	log.Print("Server listening on https://localhost:3000/")
 
 	log.Fatal(http.ListenAndServeTLS("127.0.0.1:3000", "../localhost.crt", "../localhost.key", nil))
-	// go log.Fatal(http.ListenAndServe("0.0.0.0:3000", nil))
-	// ToDo: add in redirect
 }

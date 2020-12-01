@@ -2,6 +2,7 @@
   {{ template "Header" }}
     {{ template "Menu" }} 
    <h2>New Ticket</h2>
+   <p style="color:red;"><b> {{ .commentError }} </b></p>
    <div class="container">  
     <form method="POST" action="newTicket">
       <label> Title </label><input type="text" name="title" /><br />
