@@ -159,7 +159,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		err = tmpl.ExecuteTemplate(w, "Show", M{
 			"ticket":       ticket,
 			"comments":     comments,
-			"commentError": "ERROR: Cannot comment on a resolved Ticket",
+			"commentError": "ERROR: Cannot comment on a closed Ticket",
 		})
 		// Reset comment error
 		commentError = false
@@ -237,7 +237,11 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 }
 
 func New(w http.ResponseWriter, r *http.Request) {
-	err := tmpl.ExecuteTemplate(w, "New", nil)
+	users := user.GetAllUsers(w, r)
+	err := tmpl.ExecuteTemplate(w, "New", M{
+		"commentErro": nil,
+		"users":       users,
+	})
 	if err != nil {
 		log.Print(err.Error())
 	}
@@ -246,6 +250,7 @@ func New(w http.ResponseWriter, r *http.Request) {
 // Edit is called when the user clicks on the edit button
 // will load the values of the ticket ID into the form
 func Edit(w http.ResponseWriter, r *http.Request) {
+	users := user.GetAllUsers(w, r)
 	db := dbConn()
 	nId := r.URL.Query().Get("ticketID")
 	selDB, err := db.Query("SELECT * FROM TICKET WHERE ticketID=?", nId)
@@ -277,6 +282,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(ticket)
 	err = tmpl.ExecuteTemplate(w, "Edit", M{
 		"tickets":   ticket,
+		"users":     users,
 		"editError": nil,
 	})
 	if err != nil {
@@ -287,6 +293,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 
 // UpdateTicket is called when the user clicks on the submit button of the update form
 func UpdateTicket(w http.ResponseWriter, r *http.Request) {
+	users := user.GetAllUsers(w, r)
 	db := dbConn()
 	if r.Method == "POST" {
 		title := html.EscapeString(r.FormValue("title"))
@@ -320,6 +327,7 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 				editError := "Insufficient privileges to change the status of the ticket"
 				err := tmpl.ExecuteTemplate(w, "Edit", M{
 					"tickets":   currentTicket,
+					"users":     users,
 					"editError": editError,
 				})
 				if err != nil {
@@ -332,6 +340,7 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 			editError := "Assigned To field can not be left Empty"
 			err := tmpl.ExecuteTemplate(w, "Edit", M{
 				"tickets":   currentTicket,
+				"users":     users,
 				"editError": editError,
 			})
 			if err != nil {
@@ -347,6 +356,7 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 
 // NewTicket creates a new ticket
 func NewTicket(w http.ResponseWriter, r *http.Request) {
+	users := user.GetAllUsers(w, r)
 	db := dbConn()
 	if r.Method == "POST" {
 		title := html.EscapeString(r.FormValue("title"))
@@ -373,6 +383,7 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 			commentError := "Assigned To field can not be left Empty"
 			err := tmpl.ExecuteTemplate(w, "New", M{
 				"commentError": commentError,
+				"users":        users,
 			})
 			if err != nil {
 				log.Print(err.Error())
