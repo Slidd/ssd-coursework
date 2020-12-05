@@ -3,12 +3,13 @@ package logout
 import (
 	"net/http"
 	"net/url"
+	"os"
 	"ssd-coursework/routes/middlewares"
 )
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
-	domain := "dev-o6lnq6dg.eu.auth0.com"
+	domain := os.Getenv("AUTH0_DOMAIN")
 
 	logoutUrl, err := url.Parse("https://" + domain)
 
@@ -33,7 +34,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	parameters.Add("returnTo", returnTo.String())
-	parameters.Add("client_id", "UmOdRUfJnUUgNB5zHhlltXjTLqQJp5GM")
+	parameters.Add("client_id", os.Getenv("AUTH0_CLIENT_ID"))
 	logoutUrl.RawQuery = parameters.Encode()
 	middlewares.ClearSession(w, r)
 	http.Redirect(w, r, logoutUrl.String(), http.StatusTemporaryRedirect)
