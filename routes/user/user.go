@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"reflect"
 	"ssd-coursework/app"
 	"ssd-coursework/routes/templates"
@@ -28,7 +29,6 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 // GetSessionUsername will return the name of the current session as a string
 func GetSessionUsername(w http.ResponseWriter, r *http.Request) string {
 	sessionUsername := extractUserIDFromSession(w, r)
-	// fmt.Println(sessionUsername)
 	return sessionUsername.(string)
 }
 
@@ -167,9 +167,9 @@ func GetUserIDFromName(w http.ResponseWriter, r *http.Request, username string) 
 // Auth0 recycles tokens every 30000 seconds so need to get a new one each time
 func getAuthMgmtAPIToken() string {
 	url := "https://dev-o6lnq6dg.eu.auth0.com/oauth/token"
-
-	payload := strings.NewReader("{\"client_id\":\"Iix72KsRgahb6nEGsRn9wL6Gcy0N25pv\",\"client_secret\":\"C0-2oxWnzskRJU--7n2Q9OOFS6Sr6ocuzjfzgzQ2LdBDTU2f1frOxC4ZGXpM594V\",\"audience\":\"https://dev-o6lnq6dg.eu.auth0.com/api/v2/\",\"grant_type\":\"client_credentials\"}")
-
+	auth0MGMTID := os.Getenv("AUTH0_MGMT_API_CLIENT_ID")
+	auth0MGMTSecret := os.Getenv("AUTH0_MGMT_API_CLIENT_SECRET")
+	payload := strings.NewReader("{\"client_id\":\"" + auth0MGMTID + "\",\"client_secret\":\"" + auth0MGMTSecret + "\",\"audience\":\"https://dev-o6lnq6dg.eu.auth0.com/api/v2/\",\"grant_type\":\"client_credentials\"}")
 	req, _ := http.NewRequest("POST", url, payload)
 
 	req.Header.Add("content-type", "application/json")

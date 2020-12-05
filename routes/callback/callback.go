@@ -4,9 +4,9 @@ package callback
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"ssd-coursework/app"
 	"ssd-coursework/auth"
 
@@ -46,7 +46,7 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	oidcConfig := &oidc.Config{
-		ClientID: "UmOdRUfJnUUgNB5zHhlltXjTLqQJp5GM",
+		ClientID: os.Getenv("AUTH0_CLIENT_ID"),
 	}
 
 	idToken, err := authenticator.Provider.Verifier(oidcConfig).Verify(context.TODO(), rawIDToken)
@@ -73,6 +73,5 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect to logged in page
-	fmt.Println("did you get here?")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

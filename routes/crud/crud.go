@@ -6,6 +6,7 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"os"
 	"ssd-coursework/routes/user"
 	"ssd-coursework/validator"
 	"strconv"
@@ -16,12 +17,6 @@ import (
 )
 
 type M map[string]interface{}
-
-type Employee struct {
-	Id   int
-	Name string
-	City string
-}
 
 type Ticket struct {
 	TicketID    int
@@ -45,9 +40,9 @@ type Comment struct {
 
 func dbConn() (db *sql.DB) {
 	dbDriver := "mysql"
-	dbUser := "admin"
-	dbPass := "admin"
-	dbName := "bug_tracker"
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	dbName := os.Getenv("DB_NAME")
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {
 		panic(err.Error())
