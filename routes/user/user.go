@@ -109,6 +109,37 @@ func GetUsersNameFromAuth(w http.ResponseWriter, r *http.Request, userID string)
 	return name
 }
 
+// GetAllUsers Returns all the names of the users
+func GetAllUsers(w http.ResponseWriter, r *http.Request) []string {
+	accessToken := getAuthMgmtAPIToken()
+
+	url := "https://dev-o6lnq6dg.eu.auth0.com/api/v2/users?q=name:*&include_fields=true&fields=name"
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("authorization", "Bearer "+accessToken)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+
+	var data []map[string]interface{}
+	body, _ := ioutil.ReadAll(res.Body)
+	err := json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		panic(err)
+	}
+	var usernames []string
+	for i := range data {
+		usernames = append(usernames, fmt.Sprint(data[i]["name"]))
+	}
+	return usernames
+
+}
+
+type users struct {
+	name string
+}
+
 // GetUserIDFromName returns the ID associated with a name
 func GetUserIDFromName(w http.ResponseWriter, r *http.Request, username string) string {
 	accessToken := getAuthMgmtAPIToken()

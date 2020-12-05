@@ -5,7 +5,6 @@ import (
 	"ssd-coursework/app"
 )
 
-// entrypoint
 func main() {
 	err := app.Init()
 	if err != nil {

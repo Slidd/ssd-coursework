@@ -2,18 +2,41 @@
   {{ template "Header" }}
     {{ template "Menu" }}
    <p style="color:red;"><b> {{ .editError }} </b></p> 
-   <h2>Edit Ticket Information</h2>  
+   <h2>Edit Ticket Information</h2>
+   <div class="container">  
     <form method="POST" action="update">
       <input type="hidden" name="uid" value="{{ .tickets.TicketID }}" />
       <label> Title </label><input type="text" name="title" value="{{ .tickets.Title }}"  /><br />
-      <label> Ticket Type </label><input type="text" name="ticketType" value="{{ .tickets.TicketType }}"  /><br />
-      <label> Status </label><input type="text" name="status" value="{{ .tickets.Status }}"  /><br />
+      <label> Ticket Type </label><br />
+      <select name="ticketType" id="ticketType">
+        <option {{ if eq .tickets.TicketType "Development" }} selected="selected"{{ end }} value="Development">Development</option>
+        <option {{ if eq .tickets.TicketType "Testing" }} selected="selected"{{ end }} value="Testing">Testing</option>
+        <option {{ if eq .tickets.TicketType "Production" }} selected="selected"{{ end }} value="Production">Production</option>
+      </select><br />
+      <label> Status </label><br />
+      <select name="status" id="status"><br />
+        <option {{ if eq .tickets.Status "Open" }} selected="selected"{{ end }} value="Open">Open</option>
+        <option {{ if eq .tickets.Status "Resolved" }} selected="selected"{{ end }} value="Resolved">Resolved</option>
+        <option {{ if eq .tickets.Status "Closed" }} selected="selected"{{ end }} value="Closed">Closed</option>
+      </select><br />
       <label> CreatedAt </label><input type="text" name="createdAt" value="{{ .tickets.CreatedAt }}"  /><br />
       <label> Description </label><input type="text" name="description" value="{{ .tickets.Description }}"  /><br />
       <label> Finder </label><input type="text" name="finderID" value="{{ .tickets.FinderID }}"  /><br />
-      <label> Assigned To </label><input type="text" name="assignedTo" value="{{ .tickets.AssignedTo }}"  /><br />
-      <label> Priority </label><input type="text" name="priority" value="{{ .tickets.Priority }}"  /><br />
+      <label> Assigned To </label><br />
+      <select name="assignedTo" id="assignedTo">
+      {{$assigned:=.tickets.AssignedTo}}
+        {{range $element := .users }}
+          <option value="{{ $element }}" {{ if eq $element $assigned }} selected="selected"{{ end }}>{{ $element }}</option>
+        {{end}}
+      </select><br />
+      <label> Priority </label><br />
+      <select name="priority" id="priority"><br />
+        <option {{ if eq .tickets.Status "High" }} selected="selected"{{ end }} value="High">High</option>
+        <option {{ if eq .tickets.Status "Medium" }} selected="selected"{{ end }} value="Medium">Medium</option>
+        <option {{ if eq .tickets.Status "Low" }} selected="selected"{{ end }} value="Low">Low</option>
+      </select><br />
       <input type="submit" value="Update Ticket" />
-    </form><br />    
+    </form><br /> 
+    </div> 
   {{ template "Footer" }}
 {{ end }}

@@ -6,10 +6,28 @@
    <div class="container">  
     <form method="POST" action="newTicket">
       <label> Title </label><input type="text" name="title" /><br />
-      <label> Type </label><input type="text" name="type" /><br />
+      <label> Ticket Type </label><br />
+      <select name="type" id="type">
+        <option value="Development">Development</option>
+        <option value="Testing">Testing</option>
+        <option value="Production">Production</option>
+      </select>
+      <br />
       <label> Description </label><input type="text" name="description" /><br />
-      <label> Assigned To </label><input type="text" name="assignedTo" /><br />
-      <label> Priority </label><input type="text" name="priority" /><br />
+      <label> Assigned To </label><br />
+      <select name="assignedTo" id="assignedTo">
+        {{range $element := .users }}
+          <option value="{{ $element }}">{{ $element }}</option>
+        {{end}}
+      </select>
+      <br />
+      <label> Priority </label><br />
+      <select name="priority" id="priority">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <br />
       <input type="submit" value="Submit Ticket" />
     </form>
     </div>
