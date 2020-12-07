@@ -290,6 +290,17 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 	users := user.GetAllUsers(w, r)
 	db := dbConn()
+	if user.GetAuth0UserRole(w, r, html.EscapeString(r.FormValue("assignedTo"))) == "Client" {
+		editError := "Can not assign a ticket to a Client"
+		err := tmpl.ExecuteTemplate(w, "Edit", M{
+			"tickets":   currentTicket,
+			"users":     users,
+			"editError": editError,
+		})
+		if err != nil {
+			log.Print(err.Error())
+		}
+	}
 	if r.Method == "POST" {
 		title := html.EscapeString(r.FormValue("title"))
 		ticketType := html.EscapeString(r.FormValue("ticketType"))
@@ -353,10 +364,19 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 func NewTicket(w http.ResponseWriter, r *http.Request) {
 	users := user.GetAllUsers(w, r)
 	db := dbConn()
-	if r.Method == "POST" {
+	if user.GetAuth0UserRole(w, r, html.EscapeString(r.FormValue("assignedTo"))) == "Client" {
+		commentError := "Can not assign a ticket to a Client"
+		err := tmpl.ExecuteTemplate(w, "New", M{
+			"commentError": commentError,
+			"users":        users,
+		})
+		if err != nil {
+			log.Print(err.Error())
+		}
+	} else if r.Method == "POST" {
 		title := html.EscapeString(r.FormValue("title"))
 		ticketType := html.EscapeString(r.FormValue("type"))
-		status := "open"
+		status := "Open"
 		description := html.EscapeString(r.FormValue("description"))
 		finderName := html.EscapeString(user.GetSessionUsername(w, r))
 		finderID := user.GetUserIDFromName(w, r, finderName)
@@ -384,7 +404,7 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 				log.Print(err.Error())
 			}
 		}
-		// log.Println("INSERT: Name: " + name + " | City: " + city)
+
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
