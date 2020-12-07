@@ -32,6 +32,31 @@ func GetSessionUsername(w http.ResponseWriter, r *http.Request) string {
 	return sessionUsername.(string)
 }
 
+// GetAuth0UserRole will return the role for a user from the Auth0 User database
+func GetAuth0UserRole(w http.ResponseWriter, r *http.Request, name string) string {
+	userID := GetUserIDFromName(w, r, name)
+	url := "https://dev-o6lnq6dg.eu.auth0.com/api/v2/users/" + userID + "/roles"
+	req, _ := http.NewRequest("GET", url, nil)
+	// This is using a test API token, this should be update to pull in a new auto refreshed one
+
+	accessToken := getAuthMgmtAPIToken()
+
+	req.Header.Add("authorization", "Bearer "+accessToken)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+
+	var data []map[string]interface{}
+	body, _ := ioutil.ReadAll(res.Body)
+	err := json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		panic(err)
+	}
+	role := fmt.Sprint(data[0]["name"])
+	return role
+}
+
 // extractUsernameFromSession will extract the name from Auth0 data and return it as an interface
 func extractUserIDFromSession(w http.ResponseWriter, r *http.Request) interface{} {
 	session, err := app.Store.Get(r, "auth-session")

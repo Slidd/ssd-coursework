@@ -19,7 +19,7 @@ type Authenticator struct {
 func NewAuthenticator() (*Authenticator, error) {
 	ctx := context.Background()
 
-	provider, err := oidc.NewProvider(ctx, os.Getenv("AUTH0_DOMAIN"))
+	provider, err := oidc.NewProvider(ctx, "https://"+os.Getenv("AUTH0_DOMAIN")+"/")
 	if err != nil {
 		log.Printf("failed to get provider: %v", err)
 		return nil, err

@@ -1,7 +1,7 @@
 {{ define "Index" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
-    <h2> Registered </h2>
+    <h2> Open Tickets </h2>
     <table border="1">
       <thead>
       <tr>
@@ -16,11 +16,11 @@
         <td>Priority </td>
         <td>View</td>
         <td>Edit</td>
-        <td>Delete</td>
       </tr>
        </thead>
        <tbody>
     {{ range . }}
+    {{ if eq .Status "Open" }}
       <tr>
         <td>{{ .TicketID }}</td>
         <td>{{ .Title }}</td>
@@ -33,8 +33,82 @@
         <td>{{ .Priority }} </td> 
         <td><a href="/show?ticketID={{ .TicketID }}">View</a></td>
         <td><a href="/edit?ticketID={{ .TicketID }}">Edit</a></td>
-        <td><a href="/delete?id={{ .TicketID }}">Delete</a><td>
       </tr>
+    {{ end }}
+    {{ end }}
+       </tbody>
+    </table>
+        <h2> Resolved Tickets </h2>
+    <table border="1">
+      <thead>
+      <tr>
+        <td>Ticket Number</td>
+        <td>Title</td>
+        <td>Type</td>
+        <td>Status</td>
+        <td>Date Created</td>
+        <td>Description</td>
+        <td>Finder</td>
+        <td>Assigned To </td>
+        <td>Priority </td>
+        <td>View</td>
+        <td>Edit</td>
+      </tr>
+       </thead>
+       <tbody>
+    {{ range . }}
+    {{ if eq .Status "Resolved" }}
+      <tr>
+        <td>{{ .TicketID }}</td>
+        <td>{{ .Title }}</td>
+        <td> {{ .TicketType }} </td>
+        <td>{{ .Status }} </td> 
+        <td>{{ .CreatedAt }} </td>  
+        <td>{{ .Description }} </td> 
+        <td>{{ .FinderID }} </td> 
+        <td>{{ .AssignedTo }} </td> 
+        <td>{{ .Priority }} </td> 
+        <td><a href="/show?ticketID={{ .TicketID }}">View</a></td>
+        <td><a href="/edit?ticketID={{ .TicketID }}">Edit</a></td>
+      </tr>
+    {{ end }}
+    {{ end }}
+       </tbody>
+    </table>
+    <h2> Closed Tickets </h2>
+        <table border="1">
+      <thead>
+      <tr>
+        <td>Ticket Number</td>
+        <td>Title</td>
+        <td>Type</td>
+        <td>Status</td>
+        <td>Date Created</td>
+        <td>Description</td>
+        <td>Finder</td>
+        <td>Assigned To </td>
+        <td>Priority </td>
+        <td>View</td>
+        <td>Edit</td>
+      </tr>
+       </thead>
+       <tbody>
+    {{ range . }}
+    {{ if eq .Status "Closed" }}
+      <tr>
+        <td>{{ .TicketID }}</td>
+        <td>{{ .Title }}</td>
+        <td> {{ .TicketType }} </td>
+        <td>{{ .Status }} </td> 
+        <td>{{ .CreatedAt }} </td>  
+        <td>{{ .Description }} </td> 
+        <td>{{ .FinderID }} </td> 
+        <td>{{ .AssignedTo }} </td> 
+        <td>{{ .Priority }} </td> 
+        <td><a href="/show?ticketID={{ .TicketID }}">View</a></td>
+        <td><a href="/edit?ticketID={{ .TicketID }}">Edit</a></td>
+      </tr>
+    {{ end }}
     {{ end }}
        </tbody>
     </table>
