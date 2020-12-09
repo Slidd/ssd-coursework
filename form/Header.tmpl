@@ -5,6 +5,41 @@
         <title>SSTS</title>
         <meta charset="UTF-8" />
         <link href="/public/css/stylesheet.css" rel="stylesheet">
+
+        <script type="text/javascript">
+            document.onload = function() {
+            inactivityTime();
+            };
+            document.onmousedown = function() {
+            inactivityTime();
+            };
+            document.onkeypress = function() {
+            inactivityTime();
+            };
+            document.ontouchstart = function() {
+            inactivityTime();
+            };
+
+
+            var inactivityTime = function() {
+            var t;
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+            document.onmousemove = resetTimer;
+
+            function logout() {
+                location.href = 'https://localhost:3000/logout'
+            }
+
+            function resetTimer() {
+                clearTimeout(t);
+                t = setTimeout(logout, 900000)
+                // 1000 milisec = 1 sec
+            }
+            };
+        </script>   
+
     </head>
     <body>
         <h1>Safari Security Testing Services</h1>   
