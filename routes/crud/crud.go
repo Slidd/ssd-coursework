@@ -16,8 +16,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// M passes an interface to served templates
 type M map[string]interface{}
 
+// Ticket struct represents a Ticket
 type Ticket struct {
 	TicketID    int
 	Title       string
@@ -30,6 +32,7 @@ type Ticket struct {
 	Priority    string
 }
 
+// Comment struct represents a Comment
 type Comment struct {
 	CommentID   int
 	TicketID    int
@@ -60,6 +63,7 @@ var (
 	currentTicket   Ticket
 )
 
+// Index handler serves all the current tickets when a user logs into the system
 func Index(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	selDB, err := db.Query("SELECT * FROM TICKET ORDER BY ticketID DESC")
@@ -93,33 +97,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 }
 
-// func Index(w http.ResponseWriter, r *http.Request) {
-// 	db := dbConn()
-// 	selDB, err := db.Query("SELECT * FROM Employee ORDER BY id DESC")
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
-// 	emp := Employee{}
-// 	res := []Employee{}
-// 	for selDB.Next() {
-// 		var id int
-// 		var name, city string
-// 		err = selDB.Scan(&id, &name, &city)
-// 		if err != nil {
-// 			panic(err.Error())
-// 		}
-// 		emp.Id = id
-// 		emp.Name = name
-// 		emp.City = city
-// 		res = append(res, emp)
-// 	}
-// 	err = tmpl.ExecuteTemplate(w, "Index", res)
-// 	if err != nil {
-// 		log.Print(err.Error())
-// 	}
-// 	defer db.Close()
-// }
-
+// Show handler serves a single ticket matching an ID
 func Show(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	// ToDo https://johnweldon.com/blog/quick-tip-remove-query-param-from-url-in-go/
@@ -231,6 +209,7 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// New handler serves the 'New' html template
 func New(w http.ResponseWriter, r *http.Request) {
 	users := user.GetAllUsers(w, r)
 	err := tmpl.ExecuteTemplate(w, "New", M{
