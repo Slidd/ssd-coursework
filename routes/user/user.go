@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"ssd-coursework/app"
 	"ssd-coursework/routes/templates"
 	"strings"
@@ -68,7 +67,7 @@ func extractUserIDFromSession(w http.ResponseWriter, r *http.Request) interface{
 	return sessionUsername
 }
 
-func getUserRole(w http.ResponseWriter, r *http.Request) interface{} {
+func GetUserRole(w http.ResponseWriter, r *http.Request) interface{} {
 	session, err := app.Store.Get(r, "auth-session")
 	if err != nil {
 		log.Error(err)
@@ -76,36 +75,6 @@ func getUserRole(w http.ResponseWriter, r *http.Request) interface{} {
 	sessionValues := session.Values["profile"].(map[string]interface{})["http://localhost:3000/roles"]
 	fmt.Println(sessionValues)
 	return sessionValues
-}
-
-// IsDeveloper checks if the logged in user has the Developer role
-func IsDeveloper(w http.ResponseWriter, r *http.Request) bool {
-	user := getUserRole(w, r)
-
-	if userHasRole(user, "Developer") {
-		return true
-	}
-	return false
-}
-
-// IsClient checks if the logged in user has the Client role
-func IsClient(w http.ResponseWriter, r *http.Request) bool {
-	user := getUserRole(w, r)
-
-	if userHasRole(user, "Client") {
-		return true
-	}
-	return false
-}
-
-// IsTester check if the logged in user has the Tester role
-func IsTester(w http.ResponseWriter, r *http.Request) bool {
-	user := getUserRole(w, r)
-
-	if userHasRole(user, "Tester") {
-		return true
-	}
-	return false
 }
 
 // GetUsersNameFromAuth returns a name associated with a userID
@@ -214,21 +183,4 @@ func getAuthMgmtAPIToken() string {
 		panic(err)
 	}
 	return fmt.Sprint(data["access_token"])
-}
-
-// Helper function to check the values inside the user interface
-// Interface is a slice, but first need to reflect this type so Go
-// knows how to handle it.
-func userHasRole(user interface{}, role string) bool {
-	switch reflect.TypeOf(user).Kind() {
-	case reflect.Slice:
-		s := reflect.ValueOf(user)
-
-		for i := 0; i < s.Len(); i++ {
-			if s.Index(i).Interface() == role {
-				return true
-			}
-		}
-	}
-	return false
 }
