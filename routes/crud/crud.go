@@ -100,7 +100,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 // Show handler serves a single ticket matching an ID
 func Show(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
-	// ToDo https://johnweldon.com/blog/quick-tip-remove-query-param-from-url-in-go/
 	nID := r.URL.Query().Get("ticketID")
 	selDB, err := db.Query("SELECT * FROM TICKET WHERE ticketID=?", nID)
 	if err != nil {
@@ -151,7 +150,6 @@ func Show(w http.ResponseWriter, r *http.Request) {
 
 func getComments(w http.ResponseWriter, r *http.Request, ticketID int) []Comment {
 	db := dbConn()
-	// ToDo https://johnweldon.com/blog/quick-tip-remove-query-param-from-url-in-go/
 	nID := ticketID
 	selDB, err := db.Query("SELECT * FROM COMMENT WHERE ticketID=?", nID)
 	if err != nil {
@@ -248,7 +246,6 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		ticket.FinderID = user.GetUsersNameFromAuth(w, r, finderID)
 		ticket.AssignedTo = user.GetUsersNameFromAuth(w, r, assignedTo)
 		ticket.Priority = priority
-		// currentTicketID = ticketID
 		ticketStatus = status
 		editTicketID = ticketID
 		currentTicket = ticket
@@ -290,7 +287,6 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 		if strings.TrimSpace(html.EscapeString(r.FormValue("assignedTo"))) != "" {
 			assignedTo = user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
 		}
-		// assignedTo := user.GetUserIDFromName(w, r, html.EscapeString(r.FormValue("assignedTo")))
 		priority := html.EscapeString(r.FormValue("priority"))
 		ticketID := html.EscapeString(r.FormValue("uid"))
 
@@ -335,8 +331,6 @@ func UpdateTicket(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/edit?ticketID="+strconv.Itoa(currentTicketID), 301)
 		}
 	}
-	// defer db.Close()
-	// http.Redirect(w, r, "/", 301)
 }
 
 // NewTicket creates a new ticket
@@ -385,43 +379,6 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	defer db.Close()
-	http.Redirect(w, r, "/", 301)
-}
-
-// Insert UPDATE THIS TO CREATE NEW TICKET
-func Insert(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	if r.Method == "POST" {
-		name := r.FormValue("name")
-		city := r.FormValue("city")
-		insForm, err := db.Prepare("INSERT INTO Employee(name, city) VALUES(?,?)")
-		if err != nil {
-			panic(err.Error())
-		}
-		_, err = insForm.Exec(name, city)
-		if err != nil {
-			log.Print(err.Error())
-		}
-		log.Println("INSERT: Name: " + name + " | City: " + city)
-	}
-	defer db.Close()
-	http.Redirect(w, r, "/", 301)
-}
-
-// Delete REMOVE DELETE, DON'T THINK WE NEED THIS ANYMORE
-func Delete(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	emp := r.URL.Query().Get("id")
-	delForm, err := db.Prepare("DELETE FROM Employee WHERE id=?")
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = delForm.Exec(emp)
-	if err != nil {
-		log.Print(err.Error())
-	}
-	log.Println("DELETE")
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
 }

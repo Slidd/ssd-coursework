@@ -61,10 +61,6 @@ func StartServer() {
 		negroni.HandlerFunc(middlewares.AuthorizedToAccess),
 		negroni.Wrap(http.HandlerFunc(crud.UpdateTicket)),
 	))
-	// r.Handle("/delete", negroni.New(
-	// 	negroni.HandlerFunc(middlewares.IsAuthenticated),
-	// 	negroni.Wrap(http.HandlerFunc(crud.Delete)),
-	// ))
 
 	r.HandleFunc("/login", login.LoginHandler)
 	r.HandleFunc("/callback", callback.CallbackHandler)
@@ -72,14 +68,6 @@ func StartServer() {
 		negroni.HandlerFunc(middlewares.IsAuthenticated),
 		negroni.Wrap(http.HandlerFunc(user.UserHandler)),
 	))
-
-	// http.HandleFunc("/index", crud.Index)
-	// http.HandleFunc("/show", crud.Show)
-	// http.HandleFunc("/new", crud.New)
-	// http.HandleFunc("/edit", crud.Edit)
-	// http.HandleFunc("/insert", crud.Insert)
-	// http.HandleFunc("/update", crud.Update)
-	// http.HandleFunc("/delete", crud.Delete)
 
 	// Files we want to serve to the web application (i.e. files that will be used during execution)
 	r.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))

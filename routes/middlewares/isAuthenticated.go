@@ -6,6 +6,7 @@ import (
 
 	"ssd-coursework/app"
 	"ssd-coursework/routes/user"
+	"ssd-coursework/validator"
 )
 
 // IsAuthenticated Check if the user is authenticated
@@ -25,7 +26,8 @@ func IsAuthenticated(w http.ResponseWriter, r *http.Request, next http.HandlerFu
 }
 
 func AuthorizedToAccess(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	if user.IsDeveloper(w, r) || user.IsClient(w, r) || user.IsTester(w, r) {
+	role := user.GetUserRole(w, r)
+	if validator.CanAccessApplication(role) {
 		next(w, r)
 	} else {
 		http.Error(w, "Not Authorized to use application. Please contact an admin to gain access.", http.StatusInternalServerError)
